@@ -1,4 +1,3 @@
-# Importing libraries-----------------------------------------------------------------------------------------
 import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -203,10 +202,6 @@ if user_input == 'Visulization':
         plt.boxplot(df_new_model[feature])
         plt.title(feature)
     st.pyplot()
-
-
-
-
 else:
     # Prepare the data for modeling--------------------------------------------------------------------
     X = df_new_model[['Engine Size(L)', 'Cylinders', 'Fuel Consumption Comb (L/100 km)']]
@@ -215,18 +210,30 @@ else:
     # Train the random forest regression model---------------------------------------------------------
     model = RandomForestRegressor().fit(X, y)
 
-    # Create the Streamlit web app---------------------------------------------------------------------
+# Model
+if user_input == 'Model':
     st.title('CO2 Emission Prediction')
-    st.write('Enter the vehicle specifications to predict CO2 emissions.')
+    st.write('Please enter the details of the vehicle:')
+    
+    # Input fields with validation
+    engine_size = st.number_input('Engine Size (L)', min_value=0.1, value=1.0, step=0.1)
+    cylinders = st.number_input('Cylinders', min_value=1, value=4, step=1)
+    fuel_consumption = st.number_input('Fuel Consumption Comb (L/100 km)', min_value=0.1, value=5.0, step=0.1)
 
-    # Input fields for user----------------------------------------------------------------------------
-    engine_size = st.number_input('Engine Size(L)', step=0.1, format="%.1f")
-    cylinders = st.number_input('Cylinders', min_value=2, max_value=16, step=1)
-    fuel_consumption = st.number_input('Fuel Consumption Comb (L/100 km)', step=0.1, format="%.1f")
-
-    # Predict CO2 emissions----------------------------------------------------------------------------
-    input_data = [[cylinders, engine_size, fuel_consumption]]
-    predicted_co2 = model.predict(input_data)
-
-    # Display the prediction---------------------------------------------------------------------------
-    st.write(f'Predicted CO2 Emissions: {predicted_co2[0]:.2f} g/km')
+    # Check for invalid inputs
+    if engine_size < 0 or cylinders < 0 or fuel_consumption < 0:
+        st.error('Inputs must be non-negative.')
+    else:
+        # Prepare the input data
+        X_new = np.array([[engine_size, cylinders, fuel_consumption]])
+        
+        # Model training
+        X = df_new_model[['Engine Size(L)', 'Cylinders', 'Fuel Consumption Comb (L/100 km)']]
+        y = df_new_model['CO2 Emissions(g/km)']
+        model = RandomForestRegressor()
+        model.fit(X, y)
+        
+        # Make prediction
+        prediction = model.predict(X_new)
+        
+        st.write('Estimated CO2 Emissions (g/km):', prediction[0])
